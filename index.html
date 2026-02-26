@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buriram GP — MotoGP Circuit Simulator</title>
+  <meta name="description" content="Impara il Chang International Circuit di Buriram in 3D — guida la moto e memorizza tutte le 12 curve del GP di Tailandia MotoGP.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="header-logo">
+    <span class="flag-thai">🇹🇭</span>
+    <div>
+      <div class="header-title">Buriram <span>GP</span></div>
+      <div class="header-sub">MotoGP 2026 · Circuit Simulator</div>
+    </div>
+  </div>
+  <div class="circuit-badge">Chang International Circuit · 4.554 km · 12 turns</div>
+</header>
+
+<!-- ── Mode Bar ─────────────────────────────────────────────────────────────── -->
+<div class="mode-bar">
+  <button class="mode-btn" id="btn-ride">🏍&nbsp; Ride 3D</button>
+  <button class="mode-btn active" id="btn-explore">🗺&nbsp; Explore</button>
+  <button class="mode-btn" id="btn-walk">⏱&nbsp; Walkthrough</button>
+  <button class="mode-btn" id="btn-quiz">❓&nbsp; Quiz</button>
+</div>
+
+<!-- ── Main Content ─────────────────────────────────────────────────────────── -->
+<div class="main-content">
+
+  <!-- ── RIDE SECTION (3D) ─────────────────────────────────────────────────── -->
+  <section id="ride-section">
+    <canvas id="ride-canvas"></canvas>
+    <div id="lap-flash">🏁 LAP COMPLETE</div>
+  </section>
+
+  <!-- ── MAP SECTION (Explore / Walkthrough / Quiz) ────────────────────────── -->
+  <section id="map-section">
+
+    <!-- Left: Track map -->
+    <div class="map-left">
+      <div class="map-container">
+        <svg id="track-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Track outline — Chang International Circuit (Buriram) -->
+          <!-- Outer border / glow -->
+          <path class="track-path-outline" d="
+            M 72 22
+            C 76 22, 82 26, 85 34
+            C 87 40, 87 50, 88 62
+            C 88 67, 85 70, 80 72
+            C 76 74, 70 78, 65 82
+            C 60 86, 52 84, 48 78
+            C 44 73, 37 70, 35 68
+            C 30 64, 23 62, 22 60
+            C 20 56, 20 48, 20 42
+            C 20 36, 22 34, 32 32
+            C 36 31, 42 26, 50 22
+            C 56 19, 65 20, 72 22 Z
+          "/>
+          <!-- Road surface -->
+          <path class="track-path" d="
+            M 72 22
+            C 76 22, 82 26, 85 34
+            C 87 40, 87 50, 88 62
+            C 88 67, 85 70, 80 72
+            C 76 74, 70 78, 65 82
+            C 60 86, 52 84, 48 78
+            C 44 73, 37 70, 35 68
+            C 30 64, 23 62, 22 60
+            C 20 56, 20 48, 20 42
+            C 20 36, 22 34, 32 32
+            C 36 31, 42 26, 50 22
+            C 56 19, 65 20, 72 22 Z
+          "/>
+          <!-- Start/Finish line -->
+          <line class="sf-line" x1="66" y1="19.5" x2="66" y2="24.5"/>
+          <!-- Direction arrow -->
+          <path d="M 60 19 L 63 22 L 60 25" fill="none" stroke="#f5a623" stroke-width="1" opacity="0.6"/>
+        </svg>
+      </div>
+
+      <!-- Circuit stats strip -->
+      <div class="map-stats">
+        <div class="map-stat">
+          <div class="map-stat-val">4.554</div>
+          <div class="map-stat-lbl">km</div>
+        </div>
+        <div class="map-stat">
+          <div class="map-stat-val">12</div>
+          <div class="map-stat-lbl">Turns</div>
+        </div>
+        <div class="map-stat">
+          <div class="map-stat-val">1000m</div>
+          <div class="map-stat-lbl">Main Straight</div>
+        </div>
+        <div class="map-stat">
+          <div class="map-stat-val">327</div>
+          <div class="map-stat-lbl">Max km/h</div>
+        </div>
+        <div class="map-stat">
+          <div class="map-stat-val">↻</div>
+          <div class="map-stat-lbl">Clockwise</div>
+        </div>
+      </div>
+
+      <!-- Walkthrough progress bar (shown in walkthrough mode) -->
+      <div id="walk-bar-wrap">
+        <div class="walk-bar-bg">
+          <div id="walk-progress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Corner Detail Panel -->
+    <aside id="corner-panel">
+      <!-- Panel header -->
+      <div class="panel-header">
+        <div class="panel-num-row">
+          <div class="panel-num-badge" id="panel-num">T1</div>
+          <div>
+            <div class="panel-name" id="panel-name">Start Hairpin</div>
+            <div id="panel-direction" class="dir-badge right">↪ RIGHT</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini cockpit view -->
+      <canvas id="cockpit-canvas" width="340" height="130"></canvas>
+
+      <!-- Speed / Gear stats -->
+      <div class="panel-stats">
+        <div class="stat-cell">
+          <div class="stat-val red" id="panel-entry">290</div>
+          <div class="stat-lbl">Entry km/h</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="panel-exit">80</div>
+          <div class="stat-lbl">Exit km/h</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val gold" id="panel-gear">1</div>
+          <div class="stat-lbl">Gear</div>
+        </div>
+      </div>
+
+      <!-- Braking bar -->
+      <div class="brake-section">
+        <div class="brake-label">
+          <span>Braking Difficulty</span>
+          <span class="brake-val" id="brake-value">9/10</span>
+        </div>
+        <div class="brake-bar-bg">
+          <div id="brake-fill" style="width:90%"></div>
+        </div>
+      </div>
+
+      <!-- Character -->
+      <div class="panel-section">
+        <div class="panel-section-title">Character</div>
+        <div class="panel-character" id="panel-character">Heavy braking hairpin after the start/finish straight</div>
+      </div>
+
+      <!-- Pilot tip -->
+      <div class="panel-section">
+        <div class="panel-section-title">🏍 Pilot Note</div>
+        <div class="panel-tip" id="panel-tip">Brake early and defend the inside line...</div>
+      </div>
+
+      <!-- Landmark -->
+      <div class="panel-section">
+        <div class="panel-section-title">📍 Landmark</div>
+        <div class="panel-landmark" id="panel-landmark">Start/Finish straight</div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="panel-nav">
+        <button class="nav-btn" id="btn-prev">◀ Prev</button>
+        <button class="nav-btn" id="btn-next">Next ▶</button>
+      </div>
+    </aside>
+
+    <!-- Right: Quiz Panel -->
+    <aside id="quiz-panel">
+      <div class="quiz-header">
+        ❓ Quiz
+        <span id="quiz-score-display">Score: 0</span>
+      </div>
+      <div id="quiz-question">
+        <div class="quiz-round">Caricamento...</div>
+      </div>
+      <div class="quiz-instruction">
+        👆 Clicca la curva corretta sulla mappa
+      </div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+    </aside>
+
+  </section><!-- #map-section -->
+
+</div><!-- .main-content -->
+
+<script src="ride3d.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
