@@ -95,17 +95,25 @@ function switchMode(mode) {
 }
 
 // ─── RIDE MODE ───────────────────────────────────────────────────────────────
-function startRide() {
+async function startRide() {
+    // Show loading indicator in console or UI if needed
+    console.log("Loading Buriram GP assets...");
+
     // Wait for DOM reflow
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
         resizeCanvas();
         const canvas = document.getElementById('ride-canvas');
         App.engine = new RideEngine();
-        App.engine.init(canvas, App.corners);
-        App.engine.onLapComplete = () => {
+
+        // Await asset loading inside init
+        await App.engine.init(canvas, App.corners);
+
+        // Setup communication
+        App.onLapComplete = () => {
             const el = document.getElementById('lap-flash');
             if (el) { el.style.opacity = 1; setTimeout(() => el.style.opacity = 0, 1800); }
         };
+
         App.engine.start();
     });
 }
